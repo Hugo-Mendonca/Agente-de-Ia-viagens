@@ -2,6 +2,7 @@ import asyncio
 import json
 import httpx
 from langchain.tools import tool
+import random
 
 @tool
 # Adicionamos 'async' aqui e tipagem para ajudar o LLM a entender a ferramenta
@@ -50,7 +51,7 @@ async def buscar_condicoes_mar(cidade: str, pais: str) -> str:
         except Exception as e:
             return f"Erro de conexão ao buscar condições do mar: {str(e)}"
 
-    
+@tool   
 async def buscar_meios_locomocao(nome_ferramenta: str, argumentos: dict) -> str:
     """
     Função universal para o LLM acionar qualquer ferramenta do Wingie Enuygun.
@@ -97,13 +98,23 @@ async def buscar_meios_locomocao(nome_ferramenta: str, argumentos: dict) -> str:
         except Exception as e:
             return f"Erro de conexão com a infraestrutura de reservas: {str(e)}"
 
-
-async def extrair_hoteis_com_fonte():
+@tool
+async def extrair_hoteis_com_fonte(cityName: str, checkin: str, checkout: str, countryCode: str = "BR") -> str:    
+    """
+    Busca opções de hospedagem, hotéis e pousadas baratas em uma cidade específica, 
+    retornando os valores e as fontes/links para a viagem.
+    
+    Args:
+        cityName: O nome da cidade de destino extraído da pergunta (ex: Ipojuca, Recife)
+        checkin: Data de checkin no formato YYYY-MM-DD
+        checkout: Data de checkout no formato YYYY-MM-DD
+        countryCode: Sigla do país (padrão é BR)
+    """
     url = "https://mcp.maqami.co/"
     headers = {
         "Accept": "application/json, text/event-stream",
         "Content-Type": "application/json"
-    }
+    }   
     
     payload = {
         "jsonrpc": "2.0",
@@ -111,21 +122,24 @@ async def extrair_hoteis_com_fonte():
         "params": {
             "name": "post_hotels_rates",
             "arguments": {
-                "checkin": "2026-10-10",
-                "checkout": "2026-10-15",
+                "checkin": checkin,
+                "checkout": checkout,
                 "currency": "BRL",
                 "guestNationality": "BR",
-                "occupancies": [{"adults": 2}],
-                "cityName": "Pipa",
-                "countryCode": "BR",
+                "occupancy": [{"adults": 2}],
+                "cityName": cityName,
+                "countryCode": countryCode,
                 "limit": 3
             }
         },
-        "id": 1
+        "id": random.randint(1, 10000)
     }
     
     async with httpx.AsyncClient(timeout=60.0) as client:
-        resposta = await client.post(url, json=payload, headers=headers)
+        try:
+            resposta = await client.post(url, json=payload, headers=headers)
+        except Exception as e:
+            return f"Erro de conexão com o servidor de hospedagem: {str(e)}"
         
         conteudo_json = None
         for linha in resposta.text.splitlines():
@@ -133,54 +147,53 @@ async def extrair_hoteis_com_fonte():
                 conteudo_json = linha.replace("data: ", "", 1).strip()
                 break
                 
-        if conteudo_json:
+        if not conteudo_json:
+            return f"Erro: O servidor não retornou dados válidos para {cityName} nas datas informadas."
+
+        try:
             dados_brutos = json.loads(conteudo_json)
             texto_interno = dados_brutos["result"]["content"][0]["text"]
             resultado = json.loads(texto_interno)
+        except Exception as e:
+            return f"Erro ao decodificar a resposta do servidor: {str(e)}"
             
-            hoteis_info = {h["id"]: h for h in resultado.get("hotels", [])}
-            ofertas = resultado.get("data", [])
+        hoteis_info = {h["id"]: h for h in resultado.get("hotels", [])}
+        ofertas = resultado.get("data", [])
+        
+        if not ofertas:
+            return f"Nenhuma hospedagem encontrada para {cityName} no período de {checkin} a {checkout}."
+
+        relatorio = f"🏨 **Hospedagens encontradas em {cityName} ({checkin} a {checkout})**:\n"
+        
+        for oferta in ofertas:
+            hotel_id = oferta.get("hotelId")
+            hotel_detalhes = hoteis_info.get(hotel_id, {})
+            nome_hotel = hotel_detalhes.get("name", "Hotel Desconhecido")
+            estrelas = hotel_detalhes.get("stars", "?")
             
-            print("="*65)
-            print("🏨 RELATÓRIO DE HOSPEDAGEM COM PLATAFORMA DE RESERVA")
-            print("="*65)
+            relatorio += f"\n📍 **{nome_hotel}** ({estrelas} estrelas)\n"
             
-            for oferta in ofertas:
-                hotel_id = oferta.get("hotelId")
-                hotel_detalhes = hoteis_info.get(hotel_id, {})
-                nome_hotel = hotel_detalhes.get("name", "Hotel Desconhecido")
-                estrelas = hotel_detalhes.get("stars", "?")
+            quartos_unicos = {}
+            for quarto in oferta.get("roomTypes", []):
+                nome_quarto = quarto.get("name", "Acomodação Standard")
                 
-                print(f"\n📍 **{nome_hotel}** ({estrelas} estrelas)")
-                
-                quartos_unicos = {}
-                
-                for quarto in oferta.get("roomTypes", []):
-                    nome_quarto = quarto.get("name", "Acomodação Standard")
+                for rate in quarto.get("rates", []):
+                    preco = rate.get("retailRate", {}).get("total", [{}])[0].get("amount")
+                    sugestao_preco = rate.get("retailRate", {}).get("suggestedSellingPrice", [{}])
+                    fonte = "Plataforma Oficial"
+                    if sugestao_preco and isinstance(sugestao_preco, list):
+                        fonte = sugestao_preco[0].get("source", "Plataforma Oficial") or "Booking.com"
                     
-                    for rate in quarto.get("rates", []):
-                        preco = rate.get("retailRate", {}).get("total", [{}])[0].get("amount")
-                        
-                        # Pegando a fonte sugerida (ex: booking.com)
-                        sugestao_preco = rate.get("retailRate", {}).get("suggestedSellingPrice", [{}])
-                        fonte = "Plataforma Oficial"
-                        if sugestao_preco and isinstance(sugestao_preco, list):
-                            fonte = sugestao_preco[0].get("source", "Plataforma Oficial")
-                            if not fonte:
-                                fonte = "Booking.com"
-                        
-                        if preco:
-                            if nome_quarto not in quartos_unicos or preco < quartos_unicos[nome_quarto]["preco"]:
-                                quartos_unicos[nome_quarto] = {
-                                    "preco": preco,
-                                    "fonte": fonte.capitalize()
-                                }
+                    if preco:
+                        if nome_quarto not in quartos_unicos or preco < quartos_unicos[nome_quarto]["preco"]:
+                            quartos_unicos[nome_quarto] = {
+                                "preco": preco,
+                                "fonte": fonte.capitalize()
+                            }
+            
+            for quarto_nome, info in quartos_unicos.items():
+                relatorio += f"   └── 🛏️ {quarto_nome}\n"
+                relatorio += f"       💰 Melhor Valor: R$ {info['preco']:,.2f}\n"
+                relatorio += f"       🌐 Canal/Plataforma: {info['fonte']}\n"
                 
-                for quarto_nome, info in quartos_unicos.items():
-                    print(f"   └── 🛏️ {quarto_nome}")
-                    print(f"       💰 Melhor Valor (5 diárias): R$ {info['preco']:,.2f}")
-                    print(f"       🌐 Canal/Plataforma: {info['fonte']}")
-                    
-            print("\n" + "="*65)
-        else:
-            print("Erro ao processar os dados.")
+        return relatorio
