@@ -10,7 +10,7 @@ from rich.markdown import Markdown
 load_dotenv()
 
 #Modelo de IA que vamos usar
-model = ChatGoogleGenerativeAI(model="gemini-3.6-flash", temperature=0.7)
+model = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0.7)
 
 #Ferramenra de busca na web tavily
 ferramenta_busca = TavilySearch(max_results=5)
