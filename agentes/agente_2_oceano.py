@@ -15,7 +15,7 @@ from tools.custom_mcps import buscar_condicoes_mar
 load_dotenv()
 
 # 1. Modelo de IA corrigido para a versão real
-model = ChatGoogleGenerativeAI(model="gemini-3.6-flash", temperature=0.7)
+model = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0.7)
 
 # 2. Ferramentas passadas como referências para o Agente escolher quando usar
 tools = [buscar_condicoes_mar, TavilySearch(max_results=5)]

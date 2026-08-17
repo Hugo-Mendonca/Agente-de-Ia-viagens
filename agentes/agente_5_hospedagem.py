@@ -14,7 +14,7 @@ from tools.custom_mcps import extrair_hoteis_com_fonte
 
 load_dotenv()
 
-model = ChatGoogleGenerativeAI(model="gemini-3.6-flash", temperature=0.7)
+model = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0.7)
 
 tools = [extrair_hoteis_com_fonte, TavilySearch(max_results=5)]
 
@@ -33,6 +33,7 @@ Sua única função é buscar, analisar e recomendar as melhores opções de aco
 ### Regras Operacionais:
 - Utilize as ferramentas de MCP disponíveis para consultar dados reais de disponibilidade e tarifas.
 - Caso uma busca retorne falha ou timeout, adote um fallback inteligente ou informe o usuário de forma transparente.
+-Sempre informe que são apenas dicas de hospedagem e que os valores são variáveis e sucetíveis a erro!
 - Nunca invente preços ou hotéis; baseie-se estritamente nos dados retornados pelas ferramentas de busca.
 """
 agent_5 = create_agent(
@@ -47,7 +48,7 @@ if __name__ == "__main__":
         console = Console()
         
         config = {"configurable": {"thread_id": "teste_previsao01"}}
-        pergunta = "Sou um surfista iniciante e estou planejando uma viagem para Pipa e gostaria de saber boas opções de hospedagem, devo ir no próximo final de semana, chegar na sexta e sair no domingo."
+        pergunta = "Sou um surfista iniciante e estou planejando uma viagem para ilha do mel e gostaria de saber boas opções de hospedagem, devo ir no próximo final de semana, chegar na sexta e sair no domingo."
 
         console.print("🌊 Analista de Hospedagem (IA) está checando as opções de hospedagem!\n")
 
