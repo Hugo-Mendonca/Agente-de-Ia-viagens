@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "agente_pai": "./core/agente_pai.py:agente_pai"
+  },
+  "env": ".env"
+}
