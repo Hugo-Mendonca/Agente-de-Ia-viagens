@@ -1,7 +1,7 @@
 {
   "dependencies": ["."],
   "graphs": {
-    "agente_pai": "./core/agente_pai.py:agente_pai"
+    "agente_pai": "./core/agente_pai_langgrapg.py:agente_pai"
   },
   "env": ".env"
 }
