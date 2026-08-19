@@ -1,0 +1,35 @@
+/* 1. Aplica o fundo na raiz do app e no body */
+html,
+body,
+#root,
+#root > div,
+main {
+    background: linear-gradient(
+        rgba(10, 25, 47, 0.80), 
+        rgba(10, 25, 47, 0.88)
+    ), 
+    url('/public/fundo_surf.jpg') no-repeat center center fixed !important;
+    background-size: cover !important;
+}
+
+/* 2. Força transparência em TODOS os containers intermediários do chat */
+main > div,
+div[role="region"],
+.watermark,
+.bg-background,
+.bg-muted,
+[data-state] {
+    background-color: transparent !important;
+    background: transparent !important;
+}
+
+/* 3. Estiliza os balões de mensagem para ficarem com efeito de vidro fosco (Glassmorphism) */
+.step-message,
+[data-test="message-content"],
+.cl-message {
+    background-color: rgba(13, 37, 68, 0.75) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 12px !important;
+}

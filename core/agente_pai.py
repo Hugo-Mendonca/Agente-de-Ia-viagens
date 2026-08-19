@@ -117,11 +117,11 @@ Sua resposta final ao usuário DEVE conter exatamente estas seções bem formata
 ## 2. 🏨 Opções de Hospedagem & Tarifas
 - Apresentar as opções retornadas (Econômica, Custo-Benefício, Conforto) com os valores reais em R$ e canais de reserva sugeridos.
 
-## 3. 🚗 Logística & Deslocamento
+## 3. ✈️ Logística & Deslocamento
 - Rota recomendada, distância e tempo estimado
 - Cálculo detalhado de combustível e pedágios
 
-## 4. 💰 Orçamento Consolidado da Viagem
+## 4. 💵 Orçamento Consolidado da Viagem
 - Tabela discriminando: Hospedagem + Combustível + Pedágios + Alimentação/Aulas estimadas
 - **Custo Total Estimado da Viagem (R$)**
 - **Custo Rateado por Pessoa**

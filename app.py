@@ -23,7 +23,7 @@ async def main(message: cl.Message):
     config = {"configurable": {"thread_id": thread_id}}
     
     # Cria uma mensagem inicial indicando que os especialistas estão trabalhando
-    msg = cl.Message(content="🌊 *Consultando os especialistas e montando seu planejamento...*")
+    msg = cl.Message(content="🌊 *Consultando os especialistas e montando seu planejamento...*", author="Surf Trip Guide")
     await msg.send()
     
     # Invoca o Agente Pai com o thread_id contínuo
